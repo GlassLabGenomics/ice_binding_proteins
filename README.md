@@ -1,2 +1,2 @@
-# ice_binding_proteins
+# Ice Binding Proteins Project
 Repository of scripts for IBP sequence analysis
