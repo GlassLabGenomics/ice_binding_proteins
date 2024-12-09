@@ -144,12 +144,11 @@ def write_gene_accid_to_file(accidlist, outfile="accids.txt"):
 
 ## FASTA FUNCTIONS
 
-def extract_fasta_info(entrez_record, moltype='protein'):
+def extract_record_header(entrez_record, moltype='protein'):
     """Takes in a record object from Entrez handle,
     returns a dict with header and fasta"""
     moltype=check_moltype(moltype)
     organism = find_organism(entrez_record)
-    seq = entrez_record['GBSeq_sequence']
     if moltype=='protein':
         accid = entrez_record['GBSeq_primary-accession']
         protein = find_protein(entrez_record)
@@ -159,26 +158,17 @@ def extract_fasta_info(entrez_record, moltype='protein'):
         primeaccid = entrez_record['GBSeq_primary-accession']
         seqdef = entrez_record['GBSeq_definition']
         header = f'{accid}|{primeaccid}|{seqdef}'
-        
-        #### TODO: extract protid and append to header if it exists
-        # for featitem in entrez_record['GBSeq_feature-table']:
-        #     if not 'GBFeature_quals' in featitem.keys():
-        #         protid = ''
-        #     else:
-        #         ...
-        
-        # if entrez_record['GBSeq_feature-table'][-1]['GBFeature_quals']:
-        #     for entry in entrez_record['GBSeq_feature-table'][-1]['GBFeature_quals']:
-        #         if entry['GBQualifier_name'] == 'protein_id':
-        #             protid = entry['GBQualifier_value']
-        #         else:
-        #             protid = ''
-        # else:
-        #     protid = ''
-        # header = f'{accid}|{primeaccid}|{protid}|{seqdef}'
-        ####
-        
-    return {header:seq}
+    return header
+
+def extract_record_seq(entrez_record):
+    """Takes in a record object from Entrez handle, 
+    returns seq if it exists in record"""
+    try:
+        seq = entrez_record['GBSeq_sequence']
+    except KeyError as keyerr: # whole chromosomes have no seq in record
+        return 0
+    else:
+        return seq
 
 def write_fasta(fasta_dict, out_path,flag='w'):
     with open(out_path, flag) as f:
@@ -190,47 +180,52 @@ def write_fasta(fasta_dict, out_path,flag='w'):
             f.write('\n'.join(wrappedseq))
         f.write('\n')
         
-def get_fastas_from_record(entrezrecordlist):
-    pass
+def get_fasta_from_record(entrezrecord, moltype='protein'):
+    """Takes in list of entrez records, makes a dictionary
+    of form {header:seq}"""
+    header = extract_record_header(entrezrecord, moltype)
+    seq = extract_record_seq(entrezrecord)
+    fastadict={}
+    if seq:
+        print('Extracting sequence successful.')
+        fastadict[header]=seq
+    else:
+        print(f'Unable to extract sequence for {header}.')
+    return fastadict
 
-def write_fastas_to_file(somefastadict):
-    pass
-
-def get_fastas_from_entrez(handleobj, outputpath, seqtype='protein'):
-    """Takes an Entrez handle object 
-    and saves the seqs in fasta files"""
-    records = Entrez.parse(handleobj)
-    for record in records:
+def write_separate_fastas_from_entrez(entrezrecordlist, outputpath, moltype='protein'):
+    """Takes a list of Entrez records 
+    and saves the seqs in separate fasta files"""
+    for record in entrezrecordlist:
         outfile = f"{record['GBSeq_primary-accession']}.fasta"
-        outpath = outputpath.joinpath(outfile)
-        print(f"Writing to {outfile}")
-        fastadict = extract_fasta_info(record, seqtype)
-        write_fasta(fastadict, outpath)
-        print('---> written')
+        fasta=get_fasta_from_record(record, moltype)
+        if fasta:
+            outpath = outputpath.joinpath(outfile)
+            print(f"Writing to {outfile}")
+            write_fasta(fasta, outpath)
+            print('---> written')
 
 def argumentsparser():
-    parser = argparse.ArgumentParser(usage="python3 %(prog)s [-h] accidfile outpath",
+    parser = argparse.ArgumentParser(usage="python3 %(prog)s [-h] moltype accidfile outpath",
                                      description="Retrieves seq from NCBI",)
+    parser.add_argument("moltype", help="type of molecule accids correspond to: prot or nucl")
     parser.add_argument("accidfile", help="path to accession ID file", type=str)
     parser.add_argument("outpath", help="path to output files", type=str)
+    
     args = parser.parse_args()
     return args
 
-# if __name__=="__main__":
-#     # args = argumentsparser()
-    # accidfilepath = Path(args.accidfile)
-    # outpath = Path(args.outpath)
-    # idlist = readaccids(accidfilepath)
-    # protrecs = batch_get_protein(idlist)
-    # genelist = get_gene_accid(protrecs)
-    # generecs = batch_get_nucleotide(genelist)
-    # get_fastas_from_entrez(generecs, outpath, 'nucleotide')
+if __name__=="__main__":
+    args = argumentsparser()
+    accidfilepath = Path(args.accidfile)
+    outpath = Path(args.outpath)
+    moltype = check_moltype(args.moltype)
     
-    # accidfilepath=Path('accidsmall')
-    # idlist=readaccids(accidfilepath)
-    # protrecs = batch_get_protein(idlist)
-    # genelist = get_gene_accid(protrecs)
-    # generecs = batch_get_nucleotide(genelist)
+    accidlist = readaccids(accidfilepath)
+    handle = batch_get(accidlist, moltype)
+    records = parse_entrez_handle_to_list(handle)
+    write_separate_fastas_from_entrez(records, outpath)
+
 
         
 # protid = 'KAI4832452.1'
@@ -242,3 +237,8 @@ def argumentsparser():
 # generec = batch_get_nucleotide(geneid)
 
 # recs = Entrez.parse(generec)
+
+###
+
+# nucllist=['AB188389', 'CM043785']
+# protlist=['AAB57731' ,'KAI4832453.1']
