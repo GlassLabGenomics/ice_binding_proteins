@@ -1,0 +1,148 @@
+ADU57094,Antifreeze protein isoform 1 (afpwj752),Anatolica polita
+ACD76102,Ice-binding protein,Bacterium 3519-10
+AAC60129,Antifreeze glycopeptide AFGP polyprotein precursor ,Boreogadus saida
+AAQ09566,Antifreeze glycoprotein precursor,Boreogadus saida
+AAQ09565,Antifreeze glycoprotein precursor,Boreogadus saida
+AAQ09564,Antifreeze glycoprotein precursor,Boreogadus saida
+ABD85297,Antifreeze glycoprotein precursor,Boreogadus saida
+AEB91960,Thr-rich antifreeze protein isoform FL#2 precursor,Campaea perlata
+AEB91961,Thr-rich antifreeze protein isoform FL#5 precursor ,Campaea perlata
+AEB91958,Thr-rich antifreeze protein isoform P01_F03 precursor ,Campaea perlata
+AEB91957,Thr-rich antifreeze protein isoform P06_O24 precursor ,Campaea perlata
+AEB91959,Thr-rich antifreeze protein isoform P08_D05 precursor ,Campaea perlata
+AEB91962,Thr-rich antifreeze protein isorform 3kDaFL precursor ,Campaea perlata
+AIR72154,Antifreeze protein major isoform precursor ,Chironomidae sp.
+ABY64762,Ice-binding protein-1,Chlamydomonas sp. CCMP681
+ABY64763,Ice-binding protein-2,Chlamydomonas sp. CCMP682 
+ABY64764,Ice-binding protein-3,Chlamydomonas sp. CCMP683 
+ABY64765,Ice-binding protein-4,Chlamydomonas sp. CCMP684
+AAW52729,Antifreeze protein Cc2,Choristoneura conflictana 
+AAW52738,Antifreeze protein Cc3,Choristoneura conflictana 
+AAW52730,Antifreeze protein Cc5,Choristoneura conflictana 
+AAW52739,Antifreeze protein Cc9,Choristoneura conflictana 
+AAW52740,Antifreeze protein Cf1,Choristoneura fumiferana 
+AAW52731,Antifreeze protein Cf14,Choristoneura fumiferana 
+AAW52732,Antifreeze protein Cf17,Choristoneura fumiferana 
+AAW52741,Antifreeze protein Cf18,Choristoneura fumiferana 
+AAF86610,Antifreeze protein isoform 10 precursor ,Choristoneura fumiferana 
+AAF86612,Antifreeze protein isoform 104 precursor,Choristoneura fumiferana 
+AAG32669,Antifreeze protein isoform 333 precursor ,Choristoneura fumiferana 
+AAG32668,Antifreeze protein isoform 339 precursor ,Choristoneura fumiferana 
+AAF86611,Antifreeze protein isoform 501 precursor ,Choristoneura fumiferana 
+AAK19295,Antifreeze protein-2.7a,Choristoneura fumiferana 
+AAK19296,Antifreeze protein-Lu1,Choristoneura fumiferana 
+AAG32660,Thermal hysteresis protein precursor,Choristoneura fumiferana 
+AAW52733,Antifreeze protein Co21,Choristoneura occidentalis 
+AAW52742,Antifreeze protein Co23,Choristoneura occidentalis 
+AAW52734,Antifreeze protein Co25,Choristoneura occidentalis 
+AAW52743,Antifreeze protein Co26,Choristoneura occidentalis 
+AAW52744,Antifreeze protein Co27,Choristoneura occidentalis 
+AAW52735,Antifreeze protein Co30,Choristoneura occidentalis	
+AAW52745,Antifreeze protein Cr31,Choristoneura rosaceana 
+AAW52736,Antifreeze protein Cr32,Choristoneura rosaceana 
+AAW52746,Antifreeze protein Cr35,Choristoneura rosaceana 
+AAW52747,Antifreeze protein Cr36,Choristoneura rosaceana 
+AAW52748,Antifreeze protein Cr37,Choristoneura rosaceana 
+AAW52737,Antifreeze protein Cr38,Choristoneura rosaceana 
+AAW52749,Antifreeze protein Cr40,Choristoneura rosaceana 
+AAY60837,Type II antifreeze protein,Clupea harengus	
+ABH08428,SLW05 ice-binding protein,Colwellia sp.	
+AAC62932,Antifreeze protein,Daucus carota	
+AAF86365,Antifreeze protein 10,Dendroides canadensis 
+AAF86366,Antifreeze protein 11,Dendroides canadensis 
+AAF86367,Antifreeze protein 12,Dendroides canadensis 
+AAF86368,Antifreeze protein 13,Dendroides canadensis 
+AAF86359,Antifreeze protein 3,Dendroides canadensis 
+AAF86360,Antifreeze protein 5,Dendroides canadensis 
+AAF86361,Antifreeze protein 6,Dendroides canadensis 
+AAF86362,Antifreeze protein 7,Dendroides canadensis 
+AAF86363,Antifreeze protein 8,Dendroides canadensis 
+AAF86364,Antifreeze protein 9,Dendroides canadensis 
+AAB94303,Antifreeze protein-1A,Dendroides canadensis 
+AAB94304,Antifreeze protein-1B,Dendroides canadensis 
+AAB94305,Antifreeze protein-1C,Dendroides canadensis 
+AAB94306,Antifreeze protein-1D,Dendroides canadensis	
+AAB94307,Antifreeze protein-1E,Dendroides canadensis 
+AAB94308,Antifreeze protein-1F,Dendroides canadensis 
+AAB94309,Antifreeze protein-2A,Dendroides canadensis 
+AAB94310,Antifreeze protein-2B,Dendroides canadensis 
+AAC60131,Antifreeze glycopeptide AFGP polyprotein precursor ,Dissostichus mawsoni	
+AAB57731,Antifreeze glycopeptide AFGP polyprotein precursor ,Dissostichus mawsoni	
+AAB57729,Antifreeze glycopeptide precursor ,Dissostichus mawsoni	
+AAB57730,Antifreeze glycopeptide precursor ,Dissostichus mawsoni	
+BAF43606,Antifreeze protein 6,Dorcus curvidens	
+ACT21443,Ice antifreeze protein 1,Fragilariopsis cylindrus 
+ACT21444,Ice antifreeze protein 2,Fragilariopsis cylindrus 
+ACT21445,Ice antifreeze protein 3,Fragilariopsis cylindrus 
+ACT21446,Ice antifreeze protein 5,Fragilariopsis cylindrus 
+ACT21447,Ice antifreeze protein 6,Fragilariopsis cylindrus 
+ACT21448,Ice antifreeze protein 7,Fragilariopsis cylindrus 
+ACT21449,Ice antifreeze protein 8,Fragilariopsis cylindrus 
+AAA49617,Antifreeze polypeptide,Hemitripterus americanus 
+AAA49618,Antifreeze protein Type II,Hemitripterus americanus 
+ABB03725,6.5 kDa glycine-rich antifreeze protein precursor,Hypogastrura harveyi	
+ADM49193,Antifreeze glycoprotein,Ixodes ricinus	
+ADM49194,Antifreeze glycoprotein,Ixodes scapularis	
+ACL27145,Ice-binding protein,Lentinula edodes	
+ACN38303,Ice recrystallisation inhibition protein ,Lolium perenne	
+QKK80999,Antifreeze protein,Marinomonas primoryensis	
+AAW67979,Antifreeze protein,Microdera punctipennis 
+AAW67980,Antifreeze protein isoform 1 ,Microdera punctipennis 
+ADJ93819,Antifreeze protein isoform AFPS77 ,Microdera puntipennis 
+AAG22048,Skin-type antifreeze protein ,Myoxocephalus octodecemspinosus 
+AAG25982,Skin-type antifreeze polypeptide AFP-2 ,Myoxocephalus scorpius 
+AGZ85415,Type I antifreeze protein G1-4,Myoxocephalus scorpius 
+AGZ85416,Type I antifreeze protein G4-1,Myoxocephalus scorpius 
+AGZ85417,Type I antifreeze protein G7-2,Myoxocephalus scorpius 
+AGZ85418,Type I antifreeze protein G7-4,Myoxocephalus scorpius 
+AGZ85414,Type I antifreeze protein Lar4,Myoxocephalus scorpius 
+AGZ85411,Type I antifreeze protein Liv1,Myoxocephalus scorpius 
+AGZ85412,Type I antifreeze protein Liv4,Myoxocephalus scorpius 
+AGZ85413,Type I antifreeze protein Liv5,Myoxocephalus scorpius 
+AAZ76254,Ice-binding protein,Navicula glaciei	
+AAZ76249,Ice-binding protein-10,Navicula glaciei	
+AAZ76253,Ice-binding protein-13,Navicula glaciei	
+AAZ76250,Ice-binding protein-3,Navicula glaciei	
+AAZ76251,Ice-binding protein-8,Navicula glaciei	
+AAZ76252,Ice-binding protein-9,Navicula glaciei	
+NP_001290217,Antifreeze protein type IV,Notothenia coriiceps	
+ABA41370,Type II antifreeze protein,Osmerus mordax	
+AEZ68575,Type II antifreeze protein,Osmerus mordax	
+AAA24823,Ice nucleation protein,Pantoea agglomerans	
+ABX38716,Type I hyperactive antifreeze protein,Pseudopleuronectes americanus 
+4DT5_A,Antifreeze protein (afp-h4),Rhagium inquisitor	
+AAG53610,24.8 kDa class II endochitinase-antifreeze protein precursor,Secale cereale	
+AAG53609,31.7 kDa class I endochitinase-antifreeze protein precursor,Secale cereale	
+AAP32201,29 kDa chitinase-like thermal hysteresis protein,Solanum dulcamara	
+AAL26842,Thermal hysteresis protein STHP-64,Solanum dulcamara	
+ACL00837,Antifreeze protein a,Stephos longipes	
+ACL00838,Antifreeze protein b,Stephos longipes	
+AFD54428,Antifreeze protein (YAFP),Tenebrio molitor	
+ABB03883,Antifreeze protein BST2,Tenebrio molitor	
+AAD55258,Thermal hysteresis protein isoform 3-4 precursor,Tenebrio molitor	
+AAD55256,Thermal hysteresis protein isoform 4-9 precursor,Tenebrio molitor	
+AAD55260,Thermal hysteresis protein isoform 5-15 precursor,Tenebrio molitor	
+AAD55259,Thermal hysteresis protein isoform C-9 precursor,Tenebrio molitor	
+AAD55257,Thermal hysteresis protein isoform D-16 precursor,Tenebrio molitor	
+BAD02891,[K1-A mRNA for] Antifreeze protein,Typhula ishikariensis	
+BAD02892,[K1-C mRNA for] Antifreeze protein,Typhula ishikariensis	
+BAD02893,[K3-B1 mRNA for] Antifreeze protein,Typhula ishikariensis	
+BAD02894,[K3-B2 mRNA for] Antifreeze protein,Typhula ishikariensis	
+BAD02895,[K3-B3 mRNA for] Antifreeze protein,Typhula ishikariensis	
+BAD02896,[K3-F mRNA for] Antifreeze protein,Typhula ishikariensis	
+BAD02897,[K3-G mRNA for] Antifreeze protein,Typhula ishikariensis	
+BAD95776,Type III antifreeze protein,Zoarces elongatus	
+BAD95785,Type III antifreeze protein nfeAFP10,Zoarces elongatus	
+BAD95786,Type III antifreeze protein nfeAFP11,Zoarces elongatus	
+BAD95787,Type III antifreeze protein nfeAFP12,Zoarces elongatus	
+BAD95788,Type III antifreeze protein nfeAFP13,Zoarces elongatus	
+BAD95777,Type III antifreeze protein nfeAFP2,Zoarces elongatus
+BAD95778,Type III antifreeze protein nfeAFP3,Zoarces elongatus
+BAD95779,Type III antifreeze protein nfeAFP4,Zoarces elongatus
+BAD95780,Type III antifreeze protein nfeAFP5,Zoarces elongatus
+BAD95781,Type III antifreeze protein nfeAFP6,Zoarces elongatus
+BAD95782,Type III antifreeze protein nfeAFP7,Zoarces elongatus
+BAD95783,Type III antifreeze protein nfeAFP8,Zoarces elongatus
+BAD95784,Type III antifreeze protein nfeAFP9,Zoarces elongatus
+4UR4_A,Antifreeze protein 13,Zoarces viviparus
+ABN42204,Antifreeze protein 7,Zoarces viviparus
