@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Heatmap</title>
+<style type="text/css">
+fieldset div {
+	float: left;
+	width: 50%;
+}
+
+legend {
+	font-family: sans-serif;
+	font-variant: small-caps;
+}
+
+span.left {
+	float: left;
+	color: black;
+}
+
+span.right {
+	float: right;
+	color: white;
+}
+
+#evalueNumber {
+	border: solid 0px black;
+	border-bottom: solid 1px black;
+	width: 3em;
+	font-size: 12pt;
+}
+
+#indicatordiv {
+	border: 1px solid red;
+	background-color: white;
+	padding: 3px;
+	position: absolute;
+	left: -1000px;
+	top: 0px;
+}
+
+#scalebar {
+	display: inline-block;
+	float: none;
+	width: 150px;
+	background-image: linear-gradient(to right, white, black);
+}
+</style>
+</head>
+<body>
+<canvas id="c" width="1169" height="766"></canvas>
+
+<form>
+<div id="indicatordiv"><output id="indicator" size="30"></output></div>
+
+<fieldset><legend>Absolute Values</legend>
+<div>
+Show only combinations with evalues better than:<br>
+<input type="range" id="evalueSlider" value="30" min="0" max="150" step="1">
+1e- <input type="number" id="evalueNumber" value="30" min="0" max="150">
+</div>
+
+<div>
+In every enzyme/species combination that has a black dot, the particular enzyme was found in that species in Blast with an e-value better than the e-value chosen with the slider (or entered into the field).
+</div>
+</fieldset>
+
+<p><button type="button" id="toggleAbsRel">Toggle absolute/relative</button> <button type="button" id="toggleAlphClus">Toggle alphabetical/clustered order</button></p>
+
+<fieldset><legend>Relative Values</legend>
+<div>
+Color for relative values:
+<select size="1" id="color">
+<option value="grey">greyscale</option>
+<option value="greenred">green → red</option>
+<option value="redscale">redscale</option>
+</select><br>
+<div id="scalebar"><span class="left">1</span><span class="right">1e-150</span></div>
+</div>
+
+<div>
+The color of every enzyme/species combination indicates the best e-value of the enzyme found in the species by Blast.
+</div>
+</fieldset>
+
+</form>
+
+<output id="debug"></output>
+
+<script type="text/javascript">
+'use strict';
+const taxa = ['Asteroidea', 'Forcipulatacea', 'Brisingida', 'Forcipulatida', 'Notomyotida', 'Peripodida', 'Xyloplacidae', 'Spinulosacea', 'Spinulosida', 'Velatida', 'Valvatacea', 'Paxillosida', 'Valvatida'];
+
+// alphabetically
+const adata = [[0, 0, 0, 18, 0, 17, 20, 26, 15, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 7, 15, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 5, 6, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 15, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 5, 0, 14, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 7, 15, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 5, 6, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 15, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 5, 0, 14, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 7, 15, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 5, 6, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 15, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 18, 0, 17, 20, 26, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 18, 0, 17, 20, 26, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0]];
+const aproteins = ['24.8_kDa_class_II_endochitinase-antifreeze_protein_precursor_Secale_cereale', '29_kDa_chitinase-like_thermal_hysteresis_protein_Solanum_dulcamara', '31.7_kDa_class_I_endochitinase-antifreeze_protein_precursor_Secale_cereale', 'Antifreeze_glycopeptide_AFGP_polyprotein_precursor_Boreogadus_saida', 'Antifreeze_glycopeptide_AFGP_polyprotein_precursor_Dissostichus_mawsoni', 'Antifreeze_glycoprotein_Ixodes_ricinus', 'Antifreeze_glycoprotein_Ixodes_scapularis', 'Antifreeze_glycoprotein_precursor_Boreogadus_saida', 'Antifreeze_polypeptide_Hemitripterus_americanus', 'Antifreeze_protein-1A_Dendroides_canadensis', 'Antifreeze_protein-1B_Dendroides_canadensis', 'Antifreeze_protein-1C_Dendroides_canadensis', 'Antifreeze_protein-1D_Dendroides_canadensis', 'Antifreeze_protein-1E_Dendroides_canadensis', 'Antifreeze_protein-1F_Dendroides_canadensis', 'Antifreeze_protein-2A_Dendroides_canadensis', 'Antifreeze_protein-2B_Dendroides_canadensis', 'Antifreeze_protein_(YAFP)_Tenebrio_molitor', 'Antifreeze_protein_10_Dendroides_canadensis', 'Antifreeze_protein_11_Dendroides_canadensis', 'Antifreeze_protein_12_Dendroides_canadensis', 'Antifreeze_protein_13_Dendroides_canadensis', 'Antifreeze_protein_13_Zoarces_viviparus', 'Antifreeze_protein_3_Dendroides_canadensis', 'Antifreeze_protein_5_Dendroides_canadensis', 'Antifreeze_protein_6_Dendroides_canadensis', 'Antifreeze_protein_6_Dorcus_curvidens_', 'Antifreeze_protein_7_Dendroides_canadensis', 'Antifreeze_protein_7_Zoarces_viviparus', 'Antifreeze_protein_8_Dendroides_canadensis', 'Antifreeze_protein_9_Dendroides_canadensis', 'Antifreeze_protein_BST2_Tenebrio_molitor', 'Antifreeze_protein_Daucus_carota', 'Antifreeze_protein_Marinomonas_primoryensis', 'Antifreeze_protein_Microdera_punctipennis', 'Antifreeze_protein_Type_II_Hemitripterus_americanus', 'Antifreeze_protein_a_Stephos_longipes', 'Antifreeze_protein_b_Stephos_longipes', 'Antifreeze_protein_isoform_1_(afpwj752)_Anatolica_polita', 'Antifreeze_protein_isoform_1_Microdera_punctipennis', 'Antifreeze_protein_isoform_AFPS77_Microdera_puntipennis', 'Antifreeze_protein_major_isoform_precursor_Chironomidae_sp.', 'Antifreeze_protein_type_IV_Notothenia_coriiceps', 'Ice-binding_protein-10_Navicula_glaciei', 'Ice-binding_protein-13_Navicula_glaciei', 'Ice-binding_protein-3_Navicula_glaciei', 'Ice-binding_protein-8_Navicula_glaciei', 'Ice-binding_protein-9_Navicula_glaciei', 'Ice-binding_protein_Bacterium_3519-10', 'Ice-binding_protein_Lentinula_edodes', 'Ice-binding_protein_Navicula_glaciei', 'Ice_antifreeze_protein_1_Fragilariopsis_cylindrus', 'Ice_antifreeze_protein_2_Fragilariopsis_cylindrus', 'Ice_antifreeze_protein_3_Fragilariopsis_cylindrus', 'Ice_antifreeze_protein_5_Fragilariopsis_cylindrus', 'Ice_antifreeze_protein_6_Fragilariopsis_cylindrus', 'Ice_antifreeze_protein_7_Fragilariopsis_cylindrus', 'Ice_antifreeze_protein_8_Fragilariopsis_cylindrus', 'Ice_nucleation_protein_Pantoea_agglomerans', 'Ice_recrystallisation_inhibition_protein_Lolium_perenne', 'SLW05_ice-binding_protein_Colwellia_sp.', 'Thermal_hysteresis_protein_STHP-64_Solanum_dulcamara', 'Thermal_hysteresis_protein_isoform_3-4_precursor_Tenebrio_molitor', 'Thermal_hysteresis_protein_isoform_4-9_precursor_Tenebrio_molitor', 'Thermal_hysteresis_protein_isoform_5-15_precursor_Tenebrio_molitor', 'Thermal_hysteresis_protein_isoform_C-9_precursor_Tenebrio_molitor', 'Thermal_hysteresis_protein_isoform_D-16_precursor_Tenebrio_molitor', 'Type_III_antifreeze_protein_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP10_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP11_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP12_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP13_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP2_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP3_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP4_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP5_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP6_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP7_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP8_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP9_Zoarces_elongatus', 'Type_II_antifreeze_protein_Clupea_harengus', 'Type_II_antifreeze_protein_Osmerus_mordax', '[K1-A_mRNA_for]_Antifreeze_protein_Typhula_ishikariensis', '[K1-C_mRNA_for]_Antifreeze_protein_Typhula_ishikariensis', '[K3-B1_mRNA_for]_Antifreeze_protein_Typhula_ishikariensis', '[K3-B2_mRNA_for]_Antifreeze_protein_Typhula_ishikariensis', '[K3-B3_mRNA_for]_Antifreeze_protein_Typhula_ishikariensis', '[K3-F_mRNA_for]_Antifreeze_protein_Typhula_ishikariensis', '[K3-G_mRNA_for]_Antifreeze_protein_Typhula_ishikariensis'];
+const acluster = [];
+
+// clustered
+const cdata = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 7, 5, 5, 5, 5, 5, 6, 6, 6, 6, 26, 20, 18, 17, 17, 15, 15, 15], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 7, 5, 5, 5, 5, 5, 6, 6, 6, 6, 0, 5, 0, 0, 17, 14, 15, 15], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 7, 5, 5, 5, 5, 5, 6, 6, 6, 6, 0, 5, 0, 0, 17, 14, 15, 15], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 26, 20, 18, 17, 0, 15, 14, 14], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 26, 20, 18, 17, 0, 15, 14, 14]];
+const cproteins = ['Antifreeze_protein_7_Zoarces_viviparus', 'Antifreeze_protein_8_Dendroides_canadensis', 'Antifreeze_protein_a_Stephos_longipes', 'Antifreeze_protein_Marinomonas_primoryensis', 'Antifreeze_protein_BST2_Tenebrio_molitor', 'Antifreeze_protein_Daucus_carota', 'Antifreeze_protein_b_Stephos_longipes', 'Antifreeze_protein_isoform_1_(afpwj752)_Anatolica_polita', 'Antifreeze_protein_isoform_AFPS77_Microdera_puntipennis', 'Antifreeze_protein_major_isoform_precursor_Chironomidae_sp.', 'Antifreeze_protein_type_IV_Notothenia_coriiceps', 'Ice-binding_protein-10_Navicula_glaciei', 'Ice-binding_protein-13_Navicula_glaciei', 'Ice-binding_protein-3_Navicula_glaciei', 'Ice-binding_protein-8_Navicula_glaciei', 'Ice-binding_protein-9_Navicula_glaciei', 'Ice-binding_protein_Bacterium_3519-10', 'Ice-binding_protein_Navicula_glaciei', 'Ice_antifreeze_protein_1_Fragilariopsis_cylindrus', 'Ice_antifreeze_protein_2_Fragilariopsis_cylindrus', 'Ice_antifreeze_protein_3_Fragilariopsis_cylindrus', 'Ice_antifreeze_protein_5_Fragilariopsis_cylindrus', 'Ice_antifreeze_protein_6_Fragilariopsis_cylindrus', 'Ice_antifreeze_protein_7_Fragilariopsis_cylindrus', 'Ice_antifreeze_protein_8_Fragilariopsis_cylindrus', 'Ice_nucleation_protein_Pantoea_agglomerans', 'Ice_recrystallisation_inhibition_protein_Lolium_perenne', 'SLW05_ice-binding_protein_Colwellia_sp.', 'Thermal_hysteresis_protein_STHP-64_Solanum_dulcamara', 'Type_III_antifreeze_protein_nfeAFP10_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP11_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP12_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP13_Zoarces_elongatus', 'Thermal_hysteresis_protein_isoform_C-9_precursor_Tenebrio_molitor', 'Type_III_antifreeze_protein_Zoarces_elongatus', '[K1-A_mRNA_for]_Antifreeze_protein_Typhula_ishikariensis', '[K1-C_mRNA_for]_Antifreeze_protein_Typhula_ishikariensis', '[K3-B1_mRNA_for]_Antifreeze_protein_Typhula_ishikariensis', '[K3-B2_mRNA_for]_Antifreeze_protein_Typhula_ishikariensis', '[K3-B3_mRNA_for]_Antifreeze_protein_Typhula_ishikariensis', '[K3-F_mRNA_for]_Antifreeze_protein_Typhula_ishikariensis', '[K3-G_mRNA_for]_Antifreeze_protein_Typhula_ishikariensis', 'Type_III_antifreeze_protein_nfeAFP2_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP3_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP4_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP5_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP6_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP7_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP8_Zoarces_elongatus', 'Type_III_antifreeze_protein_nfeAFP9_Zoarces_elongatus', 'Antifreeze_protein-1F_Dendroides_canadensis', 'Antifreeze_protein_5_Dendroides_canadensis', 'Antifreeze_protein_6_Dendroides_canadensis', 'Antifreeze_protein_6_Dorcus_curvidens_', 'Antifreeze_protein_7_Dendroides_canadensis', 'Antifreeze_protein_12_Dendroides_canadensis', 'Antifreeze_protein-2A_Dendroides_canadensis', 'Antifreeze_protein-2B_Dendroides_canadensis', 'Antifreeze_protein_13_Dendroides_canadensis', 'Antifreeze_protein_13_Zoarces_viviparus', 'Antifreeze_protein_3_Dendroides_canadensis', 'Antifreeze_protein-1E_Dendroides_canadensis', 'Antifreeze_protein-1D_Dendroides_canadensis', '31.7_kDa_class_I_endochitinase-antifreeze_protein_precursor_Secale_cereale', '24.8_kDa_class_II_endochitinase-antifreeze_protein_precursor_Secale_cereale', '29_kDa_chitinase-like_thermal_hysteresis_protein_Solanum_dulcamara', 'Antifreeze_protein-1C_Dendroides_canadensis', 'Antifreeze_protein-1B_Dendroides_canadensis', 'Antifreeze_glycopeptide_AFGP_polyprotein_precursor_Dissostichus_mawsoni', 'Antifreeze_protein-1A_Dendroides_canadensis', 'Antifreeze_protein_Microdera_punctipennis', 'Antifreeze_protein_isoform_1_Microdera_punctipennis', 'Antifreeze_protein_(YAFP)_Tenebrio_molitor', 'Ice-binding_protein_Lentinula_edodes', 'Thermal_hysteresis_protein_isoform_3-4_precursor_Tenebrio_molitor', 'Thermal_hysteresis_protein_isoform_4-9_precursor_Tenebrio_molitor', 'Thermal_hysteresis_protein_isoform_D-16_precursor_Tenebrio_molitor', 'Antifreeze_protein_10_Dendroides_canadensis', 'Antifreeze_protein_11_Dendroides_canadensis', 'Antifreeze_protein_9_Dendroides_canadensis', 'Thermal_hysteresis_protein_isoform_5-15_precursor_Tenebrio_molitor', 'Antifreeze_glycoprotein_precursor_Boreogadus_saida', 'Antifreeze_glycoprotein_Ixodes_scapularis', 'Antifreeze_glycopeptide_AFGP_polyprotein_precursor_Boreogadus_saida', 'Antifreeze_glycoprotein_Ixodes_ricinus', 'Type_II_antifreeze_protein_Clupea_harengus', 'Antifreeze_polypeptide_Hemitripterus_americanus', 'Antifreeze_protein_Type_II_Hemitripterus_americanus', 'Type_II_antifreeze_protein_Osmerus_mordax'];
+const ccluster = [['#cc0000', [0.05084745762711865, 0.0], [0.05084745762711865, 0.0], [0.062146892655367235, 0.0], [0.062146892655367235, 0.0]], ['#cc0000', [0.03954802259887006, 0.0], [0.03954802259887006, 0.0], [0.05649717514124294, 0.0], [0.05649717514124294, 0.0]], ['#cc0000', [0.02824858757062147, 0.0], [0.02824858757062147, 0.0], [0.0480225988700565, 0.0], [0.0480225988700565, 0.0]], ['#cc0000', [0.1638418079096045, 0.0], [0.1638418079096045, 0.0], [0.1751412429378531, 0.0], [0.1751412429378531, 0.0]], ['#cc0000', [0.15254237288135594, 0.0], [0.15254237288135594, 0.0], [0.1694915254237288, 0.0], [0.1694915254237288, 0.0]], ['#cc0000', [0.14124293785310735, 0.0], [0.14124293785310735, 0.0], [0.16101694915254236, 0.0], [0.16101694915254236, 0.0]], ['#cc0000', [0.12994350282485875, 0.0], [0.12994350282485875, 0.0], [0.15112994350282485, 0.0], [0.15112994350282485, 0.0]], ['#cc0000', [0.11864406779661017, 0.0], [0.11864406779661017, 0.0], [0.1405367231638418, 0.0], [0.1405367231638418, 0.0]], ['#cc0000', [0.10734463276836158, 0.0], [0.10734463276836158, 0.0], [0.129590395480226, 0.0], [0.129590395480226, 0.0]], ['#cc0000', [0.096045197740113, 0.0], [0.096045197740113, 0.0], [0.11846751412429378, 0.0], [0.11846751412429378, 0.0]], ['#cc0000', [0.0847457627118644, 0.0], [0.0847457627118644, 0.0], [0.1072563559322034, 0.0], [0.1072563559322034, 0.0]], ['#cc0000', [0.07344632768361582, 0.0], [0.07344632768361582, 0.0], [0.0960010593220339, 0.0], [0.0960010593220339, 0.0]], ['#cc0000', [0.038135593220338986, 0.0], [0.038135593220338986, 0.0], [0.08472369350282485, 0.0], [0.08472369350282485, 0.0]], ['#cc0000', [0.01694915254237288, 0.0], [0.01694915254237288, 0.0], [0.06142964336158192, 0.0], [0.06142964336158192, 0.0]], ['#cc0000', [0.005649717514124294, 0.0], [0.005649717514124294, 0.0], [0.0391893979519774, 0.0], [0.0391893979519774, 0.0]], ['#cc0000', [0.24293785310734464, 0.0], [0.24293785310734464, 0.0], [0.2542372881355932, 0.0], [0.2542372881355932, 0.0]], ['#cc0000', [0.23163841807909605, 0.0], [0.23163841807909605, 0.0], [0.24858757062146894, 0.0], [0.24858757062146894, 0.0]], ['#cc0000', [0.22033898305084745, 0.0], [0.22033898305084745, 0.0], [0.2401129943502825, 0.0], [0.2401129943502825, 0.0]], ['#cc0000', [0.20903954802259886, 0.0], [0.20903954802259886, 0.0], [0.23022598870056496, 0.0], [0.23022598870056496, 0.0]], ['#cc0000', [0.1977401129943503, 0.0], [0.1977401129943503, 0.0], [0.2196327683615819, 0.0], [0.2196327683615819, 0.0]], ['#cc0000', [0.1864406779661017, 0.0], [0.1864406779661017, 0.0], [0.2086864406779661, 0.0], [0.2086864406779661, 0.0]], ['#cc0000', [0.3559322033898305, 0.0], [0.3559322033898305, 0.0], [0.3672316384180791, 0.0], [0.3672316384180791, 0.0]], ['#cc0000', [0.3446327683615819, 0.0], [0.3446327683615819, 0.0], [0.3615819209039548, 0.0], [0.3615819209039548, 0.0]], ['#cc0000', [0.3333333333333333, 0.0], [0.3333333333333333, 0.0], [0.3531073446327684, 0.0], [0.3531073446327684, 0.0]], ['#cc0000', [0.3785310734463277, 0.0], [0.3785310734463277, 0.0], [0.3898305084745763, 0.0], [0.3898305084745763, 0.0]], ['#cc0000', [0.3432203389830508, 0.0], [0.3432203389830508, 0.0], [0.384180790960452, 0.0], [0.384180790960452, 0.0]], ['#cc0000', [0.3220338983050847, 0.0], [0.3220338983050847, 0.0], [0.3637005649717514, 0.0], [0.3637005649717514, 0.0]], ['#cc0000', [0.3107344632768362, 0.0], [0.3107344632768362, 0.0], [0.3428672316384181, 0.0], [0.3428672316384181, 0.0]], ['#cc0000', [0.2994350282485876, 0.0], [0.2994350282485876, 0.0], [0.3268008474576271, 0.0], [0.3268008474576271, 0.0]], ['#cc0000', [0.288135593220339, 0.0], [0.288135593220339, 0.0], [0.3131179378531073, 0.0], [0.3131179378531073, 0.0]], ['#cc0000', [0.2768361581920904, 0.0], [0.2768361581920904, 0.0], [0.3006267655367232, 0.0], [0.3006267655367232, 0.0]], ['#cc0000', [0.2655367231638418, 0.0], [0.2655367231638418, 0.0], [0.2887314618644068, 0.0], [0.2887314618644068, 0.0]], ['#cc0000', [0.4576271186440678, 0.0], [0.4576271186440678, 0.0], [0.4689265536723164, 0.0], [0.4689265536723164, 0.0]], ['#cc0000', [0.4463276836158192, 0.0], [0.4463276836158192, 0.0], [0.4632768361581921, 0.0], [0.4632768361581921, 0.0]], ['#cc0000', [0.4350282485875706, 0.0], [0.4350282485875706, 0.0], [0.4548022598870056, 0.0], [0.4548022598870056, 0.0]], ['#cc0000', [0.423728813559322, 0.0], [0.423728813559322, 0.0], [0.4449152542372881, 0.0], [0.4449152542372881, 0.0]], ['#cc0000', [0.4124293785310734, 0.0], [0.4124293785310734, 0.0], [0.4343220338983051, 0.0], [0.4343220338983051, 0.0]], ['#cc0000', [0.4011299435028249, 0.0], [0.4011299435028249, 0.0], [0.4233757062146893, 0.0], [0.4233757062146893, 0.0]], ['#cc0000', [0.5480225988700564, 0.0], [0.5480225988700564, 0.0], [0.559322033898305, 0.0], [0.559322033898305, 0.0]], ['#cc0000', [0.536723163841808, 0.0], [0.536723163841808, 0.0], [0.5536723163841808, 0.0], [0.5536723163841808, 0.0]], ['#cc0000', [0.5254237288135594, 0.0], [0.5254237288135594, 0.0], [0.5451977401129944, 0.0], [0.5451977401129944, 0.0]], ['#cc0000', [0.5141242937853108, 0.0], [0.5141242937853108, 0.0], [0.5353107344632768, 0.0], [0.5353107344632768, 0.0]], ['#cc0000', [0.5028248587570622, 0.0], [0.5028248587570622, 0.0], [0.5247175141242938, 0.0], [0.5247175141242938, 0.0]], ['#cc0000', [0.4915254237288136, 0.0], [0.4915254237288136, 0.0], [0.513771186440678, 0.0], [0.513771186440678, 0.0]], ['#cc0000', [0.480225988700565, 0.0], [0.480225988700565, 0.0], [0.5026483050847458, 0.0], [0.5026483050847458, 0.0]], ['#cc0000', [0.4122528248587571, 0.0], [0.4122528248587571, 0.0], [0.4914371468926554, 0.0], [0.4914371468926554, 0.0]], ['#cc0000', [0.2771340925141243, 0.0], [0.2771340925141243, 0.0], [0.4518449858757062, 0.0], [0.4518449858757062, 0.0]], ['#cc0000', [0.1975635593220339, 0.0], [0.1975635593220339, 0.0], [0.3644895391949153, 0.0], [0.3644895391949153, 0.0]], ['#cc0000', [0.02241955773305085, 0.0], [0.02241955773305085, 0.0], [0.2810265492584746, 0.0], [0.2810265492584746, 0.0]], ['#cc0000', [0.6045197740112994, 0.0], [0.6045197740112994, 0.0], [0.615819209039548, 0.0], [0.615819209039548, 0.0]], ['#cc0000', [0.5932203389830508, 0.0], [0.5932203389830508, 0.0], [0.6101694915254238, 0.0], [0.6101694915254238, 0.0]], ['#cc0000', [0.5819209039548022, 0.0], [0.5819209039548022, 0.0], [0.6016949152542372, 0.0], [0.6016949152542372, 0.0]], ['#cc0000', [0.6384180790960452, 0.0], [0.6384180790960452, 0.0], [0.6497175141242938, 0.0], [0.6497175141242938, 0.0]], ['#cc0000', [0.6271186440677966, 0.0], [0.6271186440677966, 0.0], [0.6440677966101694, 0.0], [0.6440677966101694, 0.0]], ['#cc0000', [0.672316384180791, 0.0], [0.672316384180791, 0.0], [0.6836158192090396, 0.0], [0.6836158192090396, 0.0]], ['#cc0000', [0.6610169491525424, 0.0], [0.6610169491525424, 0.0], [0.6779661016949152, 0.0], [0.6779661016949152, 0.0]], ['#cc0000', [0.635593220338983, 0.0], [0.635593220338983, 0.0], [0.6694915254237288, 0.0], [0.6694915254237288, 0.0]], ['#cc0000', [0.5918079096045198, 0.0], [0.5918079096045198, 0.0], [0.652542372881356, 0.0], [0.652542372881356, 0.0]], ['#cc0000', [0.5706214689265536, 0.0], [0.5706214689265536, 0.0], [0.6221751412429378, 0.0], [0.6221751412429378, 0.0]], ['#cc0000', [0.1517230534957627, 0.0], [0.1517230534957627, 0.0], [0.5963983050847458, 0.0], [0.5963983050847458, 0.0]], ['#cc0000', [0.7288135593220338, 0.0], [0.7288135593220338, 0.0], [0.7401129943502824, 0.0], [0.7401129943502824, 0.0]], ['#cc0000', [0.7175141242937854, 0.0], [0.7175141242937854, 0.0], [0.7344632768361582, 0.0], [0.7344632768361582, 0.0]], ['#cc0000', [0.7740112994350282, 0.0], [0.7740112994350282, 0.0], [0.7853107344632768, 0.0], [0.7853107344632768, 0.0]], ['#cc0000', [0.7627118644067796, 0.0], [0.7627118644067796, 0.0], [0.7796610169491526, 0.0], [0.7796610169491526, 0.0]], ['#cc0000', [0.751412429378531, 0.0], [0.751412429378531, 0.0], [0.7711864406779662, 0.0], [0.7711864406779662, 0.0]], ['#cc0000', [0.7259887005649718, 0.0], [0.7259887005649718, 0.0], [0.7612994350282486, 0.0], [0.7612994350282486, 0.0]], ['#cc0000', [0.7062146892655368, 0.0], [0.7062146892655368, 0.0], [0.7436440677966102, 0.0], [0.7436440677966102, 0.0]], ['#cc0000', [0.6949152542372882, 0.0], [0.6949152542372882, 0.0], [0.7249293785310734, 0.0], [0.7249293785310734, 0.0]], ['#cc0000', [0.3740606792902542, 0.0], [0.3740606792902542, 0.0], [0.7099223163841808, 0.0], [0.7099223163841808, 0.0]], ['#cc0000', [0.7966101694915254, 0.0], [0.7966101694915254, 0.0], [0.807909604519774, 0.0], [0.807909604519774, 0.0]], ['#cc0000', [0.8531073446327684, 0.0], [0.8531073446327684, 0.0], [0.864406779661017, 0.0], [0.864406779661017, 0.0]], ['#cc0000', [0.8418079096045198, 0.0], [0.8418079096045198, 0.0], [0.8587570621468926, 0.0], [0.8587570621468926, 0.0]], ['#cc0000', [0.8305084745762712, 0.0], [0.8305084745762712, 0.0], [0.8502824858757062, 0.0], [0.8502824858757062, 0.0]], ['#cc0000', [0.8192090395480226, 0.0], [0.8192090395480226, 0.0], [0.8403954802259888, 0.0], [0.8403954802259888, 0.0]], ['#cc0000', [0.8757062146892656, 0.0], [0.8757062146892656, 0.0], [0.8870056497175142, 0.0], [0.8870056497175142, 0.0]], ['#cc0000', [0.8983050847457628, 0.0], [0.8983050847457628, 0.0], [0.9096045197740112, 0.0], [0.9096045197740112, 0.0]], ['#cc0000', [0.8813559322033898, 0.0], [0.8813559322033898, 0.0], [0.903954802259887, 0.0], [0.903954802259887, 0.0]], ['#cc0000', [0.8298022598870056, 0.0], [0.8298022598870056, 0.05823925742515417], [0.8926553672316384, 0.05823925742515417], [0.8926553672316384, 0.0]], ['#cc0000', [0.8022598870056498, 0.0], [0.8022598870056498, 0.09059440043912871], [0.861228813559322, 0.09059440043912871], [0.861228813559322, 0.05823925742515417]], ['#cc0000', [0.5419914978372176, 0.0], [0.5419914978372176, 0.33355211070770124], [0.8317443502824858, 0.33355211070770124], [0.8317443502824858, 0.09059440043912871]], ['#00cccc', [0.943502824858757, 0.0], [0.943502824858757, 0.05823925742515417], [0.9548022598870056, 0.05823925742515417], [0.9548022598870056, 0.0]], ['#00cccc', [0.9322033898305084, 0.0], [0.9322033898305084, 0.27879921897221105], [0.9491525423728814, 0.27879921897221105], [0.9491525423728814, 0.05823925742515417]], ['#00cccc', [0.9209039548022598, 0.0], [0.9209039548022598, 0.45348015512929585], [0.940677966101695, 0.45348015512929585], [0.940677966101695, 0.27879921897221105]], ['#0000cc', [0.9887005649717514, 0.0], [0.9887005649717514, 0.0], [1.0, 0.0], [1.0, 0.0]], ['#0000cc', [0.9774011299435028, 0.0], [0.9774011299435028, 0.06724890190363335], [0.9943502824858758, 0.06724890190363335], [0.9943502824858758, 0.0]], ['#0000cc', [0.9661016949152542, 0.0], [0.9661016949152542, 0.6938198121302607], [0.9858757062146892, 0.6938198121302607], [0.9858757062146892, 0.06724890190363335]], ['#00cc00', [0.9307909604519774, 0.45348015512929585], [0.9307909604519774, 0.820231592484088], [0.9759887005649718, 0.820231592484088], [0.9759887005649718, 0.6938198121302607]], ['#00cc00', [0.6868679240598516, 0.33355211070770124], [0.6868679240598516, 1.0], [0.9533898305084746, 1.0], [0.9533898305084746, 0.820231592484088]]];
+
+let data = cdata;
+let proteins = cproteins;
+let cluster = ccluster;
+
+let isAbsolute = false;
+let isClustered = true;
+let oldPosX = -1000;
+let oldPosY = -1000;
+
+const rows = data.length;
+const cols = data[0].length;
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+ctx.font = '11px sans-serif';
+
+const dendrogramoffset = 75;
+const width = 12;
+const height = 12;
+const blockwidth = width - 1;
+const blockheight = height - 1;
+const halfwidth = width / 2;
+
+const proteinBoxTop = height * rows + 10 + dendrogramoffset;
+const taxaBoxLeft = width * cols + 10;
+
+const COLORS = {
+	BLACK: '#000000',
+	WHITE: '#ffffff',
+	GREEN: '#00aa00',
+};
+
+function drawProteins() {
+	ctx.fillStyle = COLORS.WHITE;
+	ctx.fillRect(0, proteinBoxTop, taxaBoxLeft, canvas.height);
+	ctx.fillStyle = COLORS.BLACK;
+	ctx.save();
+	ctx.translate(0, 0);
+	ctx.rotate(1.5 * Math.PI);
+	ctx.textAlign = 'right';
+	for(let i = 0; i < proteins.length; i++) {
+		ctx.fillText(proteins[i], -1 * proteinBoxTop, (i + 1) * width + 2);
+	}
+	ctx.textAlign = 'left';
+	ctx.restore();
+}
+
+function drawSpecies() {
+	ctx.fillStyle = COLORS.WHITE;
+	ctx.fillRect(taxaBoxLeft, dendrogramoffset, canvas.width, canvas.height);
+	ctx.fillStyle = COLORS.BLACK;
+	for(let i = 0; i < taxa.length; i++) {
+		ctx.fillText(taxa[i], taxaBoxLeft, (i + 1) * height + 2 + dendrogramoffset);
+	}
+}
+
+function drawDendrogram() {
+	ctx.fillStyle = COLORS.WHITE;
+	ctx.fillRect(0, 0, canvas.width, dendrogramoffset + 1);
+	if(cluster.length > 0) {
+		for(let i = 0; i < cluster.length; i++) {
+			ctx.strokeStyle = cluster[i][0];
+			ctx.beginPath();
+			ctx.moveTo(cluster[i][1][0] * (taxaBoxLeft - blockwidth - 5) + halfwidth, dendrogramoffset - cluster[i][1][1] * dendrogramoffset);
+			for(let j = 2; j < cluster[i].length; j++) {
+				ctx.lineTo(cluster[i][j][0] * (taxaBoxLeft - blockwidth - 5) + halfwidth, dendrogramoffset - cluster[i][j][1] * dendrogramoffset);
+			}
+			ctx.stroke();
+		}
+		ctx.strokeStyle = COLORS.BLACK;
+	}
+	ctx.fillStyle = COLORS.BLACK;
+}
+
+
+const evalueSlider = document.getElementById('evalueSlider');
+const evalueNumber = document.getElementById('evalueNumber');
+const indicator = document.getElementById('indicator');
+const indicatordiv = document.getElementById('indicatordiv');
+const colorSelect = document.getElementById('color');
+// const debug = document.getElementById('debug');
+
+const scalebar = document.getElementById('scalebar');
+
+function getMousePos(c, evt) {
+	const rect = c.getBoundingClientRect();
+	return [evt.clientX - rect.left, evt.clientY - rect.top];
+}
+
+function highlightPos(x, y) {
+	ctx.fillStyle = COLORS.WHITE;
+	ctx.fillRect(0, proteinBoxTop - 5, taxaBoxLeft, 5);                 // lower
+	ctx.fillRect(taxaBoxLeft - 5, dendrogramoffset, 5, proteinBoxTop);  // right
+	ctx.fillRect(0, dendrogramoffset, taxaBoxLeft, 5);                  // upper
+	ctx.fillRect(0, dendrogramoffset, 5, proteinBoxTop);                // left
+	ctx.fillStyle = COLORS.GREEN;
+
+	ctx.strokeStyle = COLORS.WHITE;
+	ctx.beginPath();
+	ctx.rect(oldPosX + 0.5, dendrogramoffset + 4.5, width, height*rows);
+	ctx.rect(4.5, oldPosY + 0.5, width * cols, height);
+	ctx.stroke();
+
+	let row = -1;
+	let col = -1;
+	ctx.strokeStyle = COLORS.GREEN;
+
+	if(x > 5 && x < width * cols + 5) {
+		const posX = Math.floor((x - 5) / width) * width + 4;
+		oldPosX = posX;
+		ctx.beginPath();
+		ctx.rect(posX + 0.5, dendrogramoffset + 4.5, width, height*rows);
+		ctx.stroke();
+		ctx.fillRect(posX, proteinBoxTop - 5, blockwidth + 2, 5);
+		ctx.fillRect(posX, dendrogramoffset, blockwidth + 2, 5);
+		col = Math.floor((x - 5) / width);
+	}
+
+	if(y > 5 + dendrogramoffset && y < height * rows + 5 + dendrogramoffset) {
+		const posY = Math.floor((y - 5 - dendrogramoffset) / height) * height + 4 + dendrogramoffset;
+		oldPosY = posY;
+		ctx.beginPath();
+		ctx.rect(4.5, posY + 0.5, width * cols, height);
+		ctx.stroke();
+		ctx.fillRect(taxaBoxLeft - 5, posY, 5, blockheight + 2);
+		ctx.fillRect(0, posY, 5, blockheight + 2);
+		row = Math.floor((y - 5 - dendrogramoffset) / height);
+	}
+	ctx.strokeStyle = COLORS.BLACK;
+
+	if(row >= 0 && col >= 0) {
+		let v = data[row][col];
+		if(v === -100) {
+			v = '> 0';
+		}
+		else if(v === 200) {
+			v = '< -150';
+		}
+		else {
+			v = `-${v}`;
+		}
+		indicator.value = v;
+		indicatordiv.style.left = `${x + 20}px`;
+		indicatordiv.style.top = `${y + 30}px`;
+	}
+	else {
+		indicator.value = '';
+		indicatordiv.style.left = '-1000px';
+		indicatordiv.style.top = '0px';
+	}
+}
+
+function drawRectAbs(ctx, x, y, fill) {
+	if(fill) {
+		fill = COLORS.BLACK;
+	}
+	else {
+		fill = COLORS.WHITE;
+	}
+	drawRect(ctx, x, y, fill);
+}
+
+function drawRect(ctx, x, y, fill) {
+	ctx.fillStyle = fill;
+	ctx.fillRect(x * width + 5, y * height + 5 + dendrogramoffset, blockwidth, blockheight);
+}
+
+function updateCanvas(source) {
+	const evalue = parseInt(source.value);
+	evalueNumber.value = evalue;
+	evalueSlider.value = evalue;
+	if(isAbsolute) {
+		makeCanvasAbsolute(evalue);
+	}
+	else {
+		makeCanvasRelative();
+	}
+}
+
+function makeCanvasAbsolute(evalue) {
+	isAbsolute = true;
+	for(let row = 0; row < data.length; row++) {
+		for(let col = 0; col < data[0].length; col++) {
+			drawRectAbs(ctx, col, row, data[row][col] >= evalue);
+		}
+	}
+}
+
+const colorScales = {
+	greyscale: {'min': 'hsl(0, 0%, 100%)', 'max': 'hsl(0, 0%, 0%)'},
+	redscale: {'min': 'hsl(0, 100%, 100%)', 'max': 'hsl(0, 100%, 50%)'},
+	greenred: {'min': 'hsl(0, 100%, 50%)', 'max': 'hsl(120, 100%, 50%)'},
+};
+
+function makeCanvasRelative() {
+	isAbsolute = false;
+	const emax = 150;
+	const emin = 0;
+
+	const key = colorSelect.value in colorScales ? colorSelect.value : 'greyscale';
+
+	scalebar.style.backgroundImage = `linear-gradient(to right, ${colorScales[key].min}, ${colorScales[key].max})`;
+
+	for(let row = 0; row < data.length; row++) {
+		for(let col = 0; col < data[0].length; col++) {
+			let fill = '#ffff00';
+			if(data[row][col] > emax) {
+				fill = colorScales[key].max;
+			}
+			else if(data[row][col] < emin) {
+				fill = colorScales[key].min;
+			}
+			else {
+				let clr;
+				if(key == 'greenred') {
+					clr = Math.round(((data[row][col] - emin)/emax) * 120);
+					fill = `hsl(${clr}, 100%, 50%)`;
+				}
+				else if(key == 'redscale') {
+					clr = 100 - Math.round(((data[row][col] - emin)/emax/2) * 100);
+					fill = `hsl(0, 100%, ${clr}%)`;
+				}
+				else {
+					clr = 100 - Math.round(((data[row][col] - emin)/emax) * 100);
+					fill = `hsl(0, 0%, ${clr}%)`;
+				}
+			}
+			drawRect(ctx, col, row, fill);
+		}
+	}
+}
+
+function toggleAbsRel() {
+	if(isAbsolute) {
+		makeCanvasRelative();
+	}
+	else {
+		makeCanvasAbsolute(+evalueSlider.value);
+	}
+}
+
+function toggleAlphClus() {
+	if(isClustered) {
+		isClustered = false;
+		data = adata;
+		proteins = aproteins;
+		cluster = acluster;
+	}
+	else {
+		isClustered = true;
+		data = cdata;
+		proteins = cproteins;
+		cluster = ccluster;
+	}
+	drawAll();
+}
+
+function drawAll() {
+	drawDendrogram();
+	drawProteins();
+	drawSpecies();
+	updateCanvas(evalueSlider);
+}
+
+drawAll();
+
+canvas.addEventListener('mousemove', function(evt) {
+	const mousePos = getMousePos(canvas, evt);
+	highlightPos(mousePos[0], mousePos[1]);
+});
+
+canvas.addEventListener('mouseout', function(_evt) {
+	highlightPos(width * cols * 2, height * rows * 2);
+});
+
+const mouseWheelEvent = (/Firefox/i.test(navigator.userAgent)) ? 'DOMMouseScroll' : 'mousewheel';
+
+canvas.addEventListener(mouseWheelEvent, function(evt) {
+	const direction = evt.detail ? -1 * evt.detail : evt.wheelDelta;
+	if(direction > 0) {
+		evalueSlider.value++;
+	}
+	else {
+		evalueSlider.value--;
+	}
+	updateCanvas(evalueSlider);
+	return false;
+});
+
+document.getElementById('evalueSlider').addEventListener('input', updateCanvas);
+document.getElementById('evalueNumber').addEventListener('input', updateCanvas);
+document.getElementById('toggleAbsRel').addEventListener('click', toggleAbsRel);
+document.getElementById('toggleAlphClus').addEventListener('click', toggleAlphClus);
+document.getElementById('color').addEventListener('change', makeCanvasRelative);
+</script>
+</body>
+</html>
