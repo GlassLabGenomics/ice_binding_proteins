@@ -19,6 +19,7 @@ def readtaxids(infile):
     with open(infile, 'r') as f:
         for line in f:
             taxids.append(line.strip())
+    taxids = list(set(taxids)) # redundant
     return taxids
 
 def batch_get(listoftaxids):
@@ -36,7 +37,7 @@ def get_lineage(entrez_record):
     position = 1 # to get kingdom
     return entrez_record[key1][position][key2]
 
-def get_info_pair(entrez_record, mode=1):
+def get_info_pair(entrez_record, mode=0):
     key1 = 'TaxId'
     key2 = 'ScientificName'
     if mode:
@@ -45,7 +46,7 @@ def get_info_pair(entrez_record, mode=1):
         kingdom_name = get_lineage(entrez_record)
         return (entrez_record[key1], f'{entrez_record[key2]}({kingdom_name})')
 
-def get_info_tuples(handleobj, mode=1):
+def get_info_tuples(handleobj, mode=0):
     """Takes in handle, iterates find scientific names, returns of tuples"""
     records = Entrez.parse(handleobj)
     taxinfolist = []
