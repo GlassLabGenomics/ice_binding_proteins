@@ -1,4 +1,6 @@
+# This repo has been moved to github alaska edu! Do not work in this one anymore.
 # Ice Binding Proteins (IBP) Project
+
 This is a repository of scripts, documentation, and results for the computational pipeline of the ice binding protein (IBP) project: **_Cold tolerance in the intertidal zone_**. 
 
 > :bulb: This page gives a brief overview of the project, please read through the [Wiki](https://github.com/GlassLabGenomics/ice_binding_proteins/wiki) for more information.
